@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SO2 Gold Store — Покупка голды Standoff 2</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #12141a;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        header {
+            background-color: #1a1d26;
+            padding: 20px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f59e0b;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f59e0b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: #ffffff;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+            flex: 1;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9ca3af;
+            margin-bottom: 40px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            transition: transform 0.5s, filter 0.5s;
+        }
+
+        .grid.glitch-cards .card:nth-child(odd) {
+            transform: rotate(8deg) translateY(30px) scale(0.9);
+            filter: hue-rotate(90deg) blur(2px);
+        }
+        .grid.glitch-cards .card:nth-child(even) {
+            transform: rotate(-10deg) translateY(-20px) scale(1.05);
+            filter: invert(1);
+        }
+
+        .card {
+            background-color: #1e222d;
+            border: 1px solid #2d3343;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            transition: transform 0.3s, border-color 0.2s, filter 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            border-color: #f59e0b;
+        }
+
+        .gold-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .amount {
+            font-size: 26px;
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 5px;
+        }
+
+        .bonus {
+            font-size: 13px;
+            color: #10b981;
+            margin-bottom: 20px;
+            height: 18px;
+        }
+
+        .price {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #f59e0b;
+            color: #12141a;
+            border: none;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #d97706;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: #1e222d;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #f59e0b;
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+
+        .close-btn:hover {
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #d1d5db;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background-color: #12141a;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #f59e0b;
+        }
+
+        footer {
+            background-color: #1a1d26;
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+            font-size: 14px;
+            margin-top: 40px;
+        }
+
+        #prankScreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            z-index: 9999;
+            padding: 18px;
+            overflow: hidden;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #matrixCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.25;
+            pointer-events: none;
+        }
+
+        .prank-ui {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            justify-content: space-between;
+        }
+
+        .rec-bar {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #ff0033;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .rec-dot {
+            animation: blink 0.5s infinite alternate;
+        }
+
+        .glitch-warning {
+            color: #ff0033;
+            font-size: 19px;
+            font-weight: bold;
+            text-align: center;
+            border: 2px solid #ff0033;
+            padding: 10px;
+            margin-bottom: 12px;
+            background-color: rgba(0, 0, 0, 0.85);
+            animation: blink 0.35s infinite alternate;
+        }
+
+        @keyframes blink {
+            from { opacity: 1; box-shadow: 0 0 20px #ff0033; }
+            to { opacity: 0.45; box-shadow: none; }
+        }
+
+        #terminalLogs {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.55;
+            background-color: rgba(0, 15, 0, 0.8);
+            padding: 12px;
+            border: 1px solid #004400;
+        }
+
+        #terminalLogs p {
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        .highlight-red {
+            color: #ff3355;
+            font-weight: bold;
+        }
+
+        .highlight-yellow {
+            color: #fbbf24;
+        }
+
+        .progress-container {
+            width: 100%;
+            border: 1px solid #00ff00;
+            height: 24px;
+            margin-top: 8px;
+            padding: 2px;
+            background-color: #000;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #00ff00;
+            transition: width 0.2s;
+        }
+
+        #prankReveal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #12141a;
+            border: 2px solid #f59e0b;
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            z-index: 10000;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 0 60px rgba(245, 158, 11, 0.7);
+        }
+
+        .shake {
+            animation: shakeScreen 0.25s infinite;
+        }
+
+        @keyframes shakeScreen {
+            0% { transform: translate(3px, 2px) rotate(0deg); }
+            25% { transform: translate(-3px, -2px) rotate(-0.6deg); }
+            50% { transform: translate(-2px, 3px) rotate(0.6deg); }
+            75% { transform: translate(3px, -3px) rotate(0deg); }
+            100% { transform: translate(-3px, 2px) rotate(-0.6deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">SO2<span>GOLD</span></div>
+        <div style="color: #9ca3af; font-size: 14px;">Моментальное пополнение по ID</div>
+    </header>
+
+    <div class="container">
+        <h1>Покупка голды Standoff 2</h1>
+        <p class="subtitle">Выберите подходящий пакет игровой валюты</p>
+
+        <div class="grid" id="cardsGrid">
+            <div class="card">
+                <div>
+                    <div class="gold-icon">🪙</div>
+                    <div class="amount">100 G</div>
+                    <div class="bonus"></div>
+                </div>
+                <div>
+                    <div class="price">99 ₽</div>
+                    <button class="btn" onclick="openModal('100 G', '99 ₽')">Купить</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div>
+                    <div class="gold-icon">💰</div>
+                    <div class="amount">500 G</div>
+                    <div class="bonus">+25 G бонусом</div>
+                </div>
+                <div>
+                    <div class="price">450 ₽</div>
+                    <button class="btn" onclick="openModal('500 G + 25 G', '450 ₽')">Купить</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div>
+                    <div class="gold-icon">💎</div>
+                    <div class="amount">1000 G</div>
+                    <div class="bonus">+100 G бонусом</div>
+                </div>
+                <div>
+                    <div class="price">850 ₽</div>
+                    <button class="btn" onclick="openModal('1000 G + 100 G', '850 ₽')">Купить</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div>
+                    <div class="gold-icon">👑</div>
+                    <div class="amount">3000 G</div>
+                    <div class="bonus">+400 G бонусом</div>
+                </div>
+                <div>
+                    <div class="price">2400 ₽</div>
+                    <button class="btn" onclick="openModal('3000 G + 400 G', '2400 ₽')">Купить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="orderModal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 style="margin-bottom: 15px;">Оформление заказа</h2>
+            <p style="margin-bottom: 20px; color: #fbbf24;" id="selectedPack"></p>
+            
+            <form onsubmit="triggerHackScreen(event)">
+                <div class="form-group">
+                    <label for="playerId">Ваш ID в Standoff 2:</label>
+                    <input type="text" id="playerId" placeholder="Например: 12345678" required pattern="[0-9]+">
+                </div>
+                <button type="submit" class="btn" id="payBtn">Перейти к оплате</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 SO2GOLD. Все права защищены. Не является официальным продуктом Axlebolt.
+    </footer>
+
+    <div id="prankScreen">
+        <canvas id="matrixCanvas"></canvas>
+        <div class="prank-ui">
+            <div>
+                <div class="rec-bar">
+                    <span><span class="rec-dot">●</span> REC [FRONT_CAM: ACTIVE]</span>
+                    <span>ROOT_ACCESS: GRANTED</span>
+                </div>
+                <div class="glitch-warning">⚠️ КРИТИЧЕСКИЙ СБОЙ: УДАЛЕННЫЙ ПЕРЕХВАТ ⚠️</div>
+            </div>
+            
+            <div id="terminalLogs"></div>
+            
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+                    <div style="background: #000; padding: 2px 6px; font-size: 13px;">
+                        КОПИРОВАНИЕ ДАННЫХ: <span id="percentText">0.0%</span>
+                    </div>
+                    <button onclick="revealPrank()" style="padding: 3px 8px; background-color: #220000; color: #ff3355; border: 1px solid #ff3355; font-family: 'Courier New', monospace; font-size: 11px; cursor: pointer; text-transform: lowercase;">
+                        [ откуп ]
+                    </button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="prankReveal">
+        <div style="font-size: 50px; margin-bottom: 10px;">😂</div>
+        <h2 style="color: #f59e0b; margin-bottom: 15px;">ЭТО БЫЛ ПРАНК!</h2>
+        <p style="color: #d1d5db; margin-bottom: 25px; line-height: 1.5;">
+            Не пугайся! Это просто розыгрыш. Никакие данные никуда не передавались, камера не включалась, а твой аккаунт в полной безопасности.
+        </p>
+        <button class="btn" onclick="resetSite()">Вернуться на сайт</button>
+    </div>
+    <script>
+        const modal = document.getElementById('orderModal');
+        const selectedPackText = document.getElementById('selectedPack');
+        const payBtn = document.getElementById('payBtn');
+        const prankScreen = document.getElementById('prankScreen');
+        const terminalLogs = document.getElementById('terminalLogs');
+        const progressBar = document.getElementById('progressBar');
+        const percentText = document.getElementById('percentText');
+        const prankReveal = document.getElementById('prankReveal');
+        const cardsGrid = document.getElementById('cardsGrid');
+
+        let audioCtx = null;
+        let sirenInterval = null;
+        let matrixInterval = null;
+        let logInterval = null;
+        let progressInterval = null;
+        let vibrateInterval = null;
+        let flashInterval = null;
+
+        function openModal(pack, price) {
+            selectedPackText.textContent = `Пакет: ${pack} — К оплате: ${price}`;
+            payBtn.textContent = `Оплатить ${price}`;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        function startScarySound() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'sawtooth';
+                osc2.type = 'square';
+                osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                osc2.frequency.setValueAtTime(75, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+
+                osc.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc2.start();
+
+                let high = false;
+                sirenInterval = setInterval(() => {
+                    if (!audioCtx) return;
+                    const now = audioCtx.currentTime;
+                    osc.frequency.exponentialRampToValueAtTime(high ? 190 : 720, now + 0.35);
+                    osc2.frequency.setValueAtTime(high ? 80 : 140, now);
+                    high = !high;
+                }, 400);
+            } catch (e) {}
+        }
+
+        function stopScarySound() {
+            if (sirenInterval) clearInterval(sirenInterval);
+            if (audioCtx) {
+                audioCtx.close().catch(() => {});
+                audioCtx = null;
+            }
+        }
+
+        function startContinuousVibrate() {
+            try {
+                if (navigator.vibrate) {
+                    navigator.vibrate(500);
+                    vibrateInterval = setInterval(() => {
+                        navigator.vibrate(500);
+                    }, 900);
+                }
+            } catch (e) {}
+        }
+
+        function stopContinuousVibrate() {
+            try {
+                if (vibrateInterval) clearInterval(vibrateInterval);
+                if (navigator.vibrate) {
+                    navigator.vibrate(0);
+                }
+            } catch (e) {}
+        }
+
+        function startMatrix() {
+            const canvas = document.getElementById('matrixCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const chars = '010101XYZ#$@%&SO2ROOT99';
+            const fontSize = 16;
+            const columns = Math.floor(canvas.width / fontSize);
+            const drops = Array(columns).fill(1);
+
+            matrixInterval = setInterval(() => {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                ctx.fillStyle = '#00ff00';
+                ctx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const idx = Math.floor(Math.random() * chars.length);
+                    const text = chars.charAt(idx);
+                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }, 45);
+        }
+
+        function getRealGPU() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (!gl) return "Не определен";
+                const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+                if (debugInfo) {
+                    return gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                }
+            } catch (e) {}
+            return "Стандартный GPU";
+        }
+
+        function getRealIPViaJSONP() {
+            return new Promise((resolve) => {
+                let done = false;
+                const finish = (val) => {
+                    if (!done) {
+                        done = true;
+                        resolve(val);
+                    }
+                };
+
+                const timer = setTimeout(() => finish("Скрыт защитой браузера"), 2500);
+
+                window.ipCallback = function(data) {
+                    clearTimeout(timer);
+                    if (data && data.ip) {
+                        const city = data.city ? ` (${data.city})` : '';
+                        finish(`${data.ip}${city}`);
+                    } else {
+                        finish("Скрыт защитой браузера");
+                    }
+                };
+
+                const script = document.createElement('script');
+                script.src = 'https://ipwho.is';
+                script.onerror = function() {
+                    clearTimeout(timer);
+                    finish("Скрыт защитой браузера");
+                };
+                document.body.appendChild(script);
+            });
+        }
+
+        async function getRealDeviceSpecs() {
+            let batteryInfo = "Ограничено системой";
+            try {
+                if (navigator.getBattery) {
+                    const bat = await navigator.getBattery();
+                    batteryInfo = `${Math.round(bat.level * 100)}% (${bat.charging ? 'заряжается' : 'от батареи'})`;
+                }
+            } catch (e) {}
+
+            const cores = navigator.hardwareConcurrency ? `${navigator.hardwareConcurrency} ядер` : "Скрыто";
+            const ram = navigator.deviceMemory ? `~${navigator.deviceMemory} ГБ` : "Скрыто системой";
+            const screenRes = `${window.screen.width}x${window.screen.height} (DPR: ${window.devicePixelRatio || 1})`;
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Не определен";
+            const lang = navigator.language || "ru-RU";
+            const gpu = getRealGPU();
+            const ip = await getRealIPViaJSONP();
+
+            let netInfo = navigator.onLine ? "Онлайн" : "Офлайн";
+            try {
+                if (navigator.connection) {
+                    const conn = navigator.connection;
+                    netInfo = `${conn.effectiveType ? conn.effectiveType.toUpperCase() : 'Сеть'} (~${conn.downlink || '?'} Мбит/с)`;
+                }
+            } catch (e) {}
+
+            let deviceModel = navigator.platform || "Мобильное устройство / ПК";
+            const ua = navigator.userAgent;
+            if (/Android/.test(ua)) {
+                deviceModel = "Смартфон на базе Android";
+            } else if (/iPhone/.test(ua)) {
+                deviceModel = "Apple iPhone (iOS)";
+            } else if (/Windows/.test(ua)) {
+                deviceModel = "ПК на базе Windows";
+            }
+
+            return { batteryInfo, cores, ram, screenRes, timezone, lang, gpu, ip, netInfo, deviceModel };
+        }
+        function revealPrank() {
+            if (logInterval) clearInterval(logInterval);
+            if (progressInterval) clearInterval(progressInterval);
+            if (flashInterval) clearInterval(flashInterval);
+            prankScreen.style.backgroundColor = '#000000';
+            prankScreen.classList.remove('shake');
+            stopScarySound();
+            stopContinuousVibrate();
+            prankReveal.style.display = 'block';
+        }
+
+        async function triggerHackScreen(event) {
+            event.preventDefault();
+            const playerId = document.getElementById('playerId').value;
+            closeModal();
+
+            cardsGrid.classList.add('glitch-cards');
+            startScarySound();
+            startContinuousVibrate();
+
+            const specs = await getRealDeviceSpecs();
+
+            setTimeout(() => {
+                try {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen().catch(() => {});
+                    }
+                } catch (e) {}
+
+                prankScreen.style.display = 'flex';
+                prankScreen.classList.add('shake');
+                terminalLogs.innerHTML = '';
+                startMatrix();
+
+                flashInterval = setInterval(() => {
+                    prankScreen.style.backgroundColor = '#2a0005';
+                    setTimeout(() => {
+                        prankScreen.style.backgroundColor = '#000000';
+                    }, 120);
+                }, 2200);
+
+                const logs = [
+                    { text: `> ВНИМАНИЕ! Зафиксирован несанкционированный доступ к устройству...`, cls: 'highlight-red' },
+                    { text: `> Внешний IP-адрес цели: ${specs.ip}`, cls: 'highlight-yellow' },
+                    { text: `> Статус сетевого канала: ${specs.netInfo}`, cls: '' },
+                    { text: `> Идентифицировано устройство: ${specs.deviceModel}`, cls: 'highlight-red' },
+                    { text: `> Графический процессор (GPU): ${specs.gpu}`, cls: '' },
+                    { text: `> Аппаратные ресурсы: ${specs.cores} | ОЗУ: ${specs.ram}`, cls: '' },
+                    { text: `> Текущий заряд батареи: ${specs.batteryInfo}`, cls: 'highlight-yellow' },
+                    { text: `> Разрешение дисплея: ${specs.screenRes}`, cls: '' },
+                    { text: `> Геолокация по часовому поясу: ${specs.timezone} (${specs.lang})`, cls: 'highlight-yellow' },
+                    { text: `> Перехват сессии Standoff 2 (ID: ${playerId})...`, cls: 'highlight-red' },
+                    { text: `> Доступ к системным разделам памяти и камере... [АКТИВЕН]`, cls: 'highlight-red' },
+                    { text: `> БЛОКИРОВКА ЗАВЕРШЕНА. ОЖИДАНИЕ ДЕЙСТВИЙ ПОЛЬЗОВАТЕЛЯ...`, cls: 'highlight-red' }
+                ];
+
+                let logIndex = 0;
+                logInterval = setInterval(() => {
+                    if (logIndex < logs.length) {
+                        const item = logs.slice(logIndex, logIndex + 1).pop();
+                        const p = document.createElement('p');
+                        p.textContent = item.text;
+                        if (item.cls) p.className = item.cls;
+                        terminalLogs.appendChild(p);
+                        terminalLogs.scrollTop = terminalLogs.scrollHeight;
+                        logIndex++;
+                    } else {
+                        clearInterval(logInterval);
+                    }
+                }, 1500);
+
+                let progress = 0;
+                progressInterval = setInterval(() => {
+                    if (progress < 99.9) {
+                        progress += 0.5;
+                        if (progress >= 99.9) progress = 99.9;
+                        progressBar.style.width = progress + '%';
+                        percentText.textContent = progress.toFixed(1) + '%';
+                    }
+                }, 100);
+
+            }, 500);
+        }
+
+        function resetSite() {
+            stopScarySound();
+            stopContinuousVibrate();
+            if (matrixInterval) clearInterval(matrixInterval);
+            if (logInterval) clearInterval(logInterval);
+            if (progressInterval) clearInterval(progressInterval);
+            if (flashInterval) clearInterval(flashInterval);
+            prankScreen.style.backgroundColor = '#000000';
+            cardsGrid.classList.remove('glitch-cards');
+            prankReveal.style.display = 'none';
+            prankScreen.style.display = 'none';
+            try {
+                if (document.exitFullscreen && document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            } catch (e) {}
+        }
+
+        window.onclick = function(event) {
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
