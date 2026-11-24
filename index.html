@@ -65,16 +65,14 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
-            transition: transform 0.5s, filter 0.5s;
+            transition: transform 0.4s;
         }
 
         .grid.glitch-cards .card:nth-child(odd) {
-            transform: rotate(8deg) translateY(30px) scale(0.9);
-            filter: hue-rotate(90deg) blur(2px);
+            transform: rotate(8deg) translateY(25px) scale(0.92);
         }
         .grid.glitch-cards .card:nth-child(even) {
-            transform: rotate(-10deg) translateY(-20px) scale(1.05);
-            filter: invert(1);
+            transform: rotate(-10deg) translateY(-15px) scale(1.03);
         }
 
         .card {
@@ -83,7 +81,7 @@
             border-radius: 12px;
             padding: 25px;
             text-align: center;
-            transition: transform 0.3s, border-color 0.2s, filter 0.3s;
+            transition: transform 0.3s, border-color 0.2s;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -142,7 +140,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.75);
+            background-color: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -165,10 +163,6 @@
             font-size: 24px;
             cursor: pointer;
             color: #9ca3af;
-        }
-
-        .close-btn:hover {
-            color: #ffffff;
         }
 
         .form-group {
@@ -214,7 +208,10 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #000000;
+            background-color: #030a03;
+            background-image: linear-gradient(rgba(0, 255, 0, 0.06) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(0, 255, 0, 0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
             color: #00ff00;
             font-family: 'Courier New', Courier, monospace;
             z-index: 9999;
@@ -222,22 +219,10 @@
             overflow: hidden;
             flex-direction: column;
             justify-content: space-between;
-        }
-
-        #matrixCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            opacity: 0.25;
-            pointer-events: none;
+            will-change: transform;
         }
 
         .prank-ui {
-            position: relative;
-            z-index: 2;
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -254,24 +239,24 @@
         }
 
         .rec-dot {
-            animation: blink 0.5s infinite alternate;
+            animation: blink 0.6s infinite alternate;
         }
 
         .glitch-warning {
             color: #ff0033;
-            font-size: 19px;
+            font-size: 18px;
             font-weight: bold;
             text-align: center;
             border: 2px solid #ff0033;
             padding: 10px;
             margin-bottom: 12px;
-            background-color: rgba(0, 0, 0, 0.85);
-            animation: blink 0.35s infinite alternate;
+            background-color: #000000;
+            animation: blink 0.45s infinite alternate;
         }
 
         @keyframes blink {
-            from { opacity: 1; box-shadow: 0 0 20px #ff0033; }
-            to { opacity: 0.45; box-shadow: none; }
+            from { opacity: 1; }
+            to { opacity: 0.4; }
         }
 
         #terminalLogs {
@@ -279,7 +264,7 @@
             overflow-y: auto;
             font-size: 13px;
             line-height: 1.55;
-            background-color: rgba(0, 15, 0, 0.8);
+            background-color: rgba(0, 12, 0, 0.9);
             padding: 12px;
             border: 1px solid #004400;
         }
@@ -328,19 +313,19 @@
             z-index: 10000;
             width: 90%;
             max-width: 450px;
-            box-shadow: 0 0 60px rgba(245, 158, 11, 0.7);
+            box-shadow: 0 0 50px rgba(245, 158, 11, 0.7);
         }
 
         .shake {
-            animation: shakeScreen 0.25s infinite;
+            animation: shakeScreen 0.3s infinite;
         }
 
         @keyframes shakeScreen {
-            0% { transform: translate(3px, 2px) rotate(0deg); }
-            25% { transform: translate(-3px, -2px) rotate(-0.6deg); }
-            50% { transform: translate(-2px, 3px) rotate(0.6deg); }
-            75% { transform: translate(3px, -3px) rotate(0deg); }
-            100% { transform: translate(-3px, 2px) rotate(-0.6deg); }
+            0% { transform: translate3d(2px, 2px, 0); }
+            25% { transform: translate3d(-2px, -2px, 0); }
+            50% { transform: translate3d(-2px, 2px, 0); }
+            75% { transform: translate3d(2px, -2px, 0); }
+            100% { transform: translate3d(-2px, 1px, 0); }
         }
     </style>
 </head>
@@ -427,7 +412,6 @@
     </footer>
 
     <div id="prankScreen">
-        <canvas id="matrixCanvas"></canvas>
         <div class="prank-ui">
             <div>
                 <div class="rec-bar">
@@ -476,7 +460,6 @@
 
         let audioCtx = null;
         let sirenInterval = null;
-        let matrixInterval = null;
         let logInterval = null;
         let progressInterval = null;
         let vibrateInterval = null;
@@ -550,36 +533,6 @@
             } catch (e) {}
         }
 
-        function startMatrix() {
-            const canvas = document.getElementById('matrixCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            const chars = '010101XYZ#$@%&SO2ROOT99';
-            const fontSize = 16;
-            const columns = Math.floor(canvas.width / fontSize);
-            const drops = Array(columns).fill(1);
-
-            matrixInterval = setInterval(() => {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                ctx.fillStyle = '#00ff00';
-                ctx.font = fontSize + 'px monospace';
-
-                for (let i = 0; i < drops.length; i++) {
-                    const idx = Math.floor(Math.random() * chars.length);
-                    const text = chars.charAt(idx);
-                    ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-                    if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                        drops[i] = 0;
-                    }
-                    drops[i]++;
-                }
-            }, 45);
-        }
-
         function getRealGPU() {
             try {
                 const canvas = document.createElement('canvas');
@@ -593,35 +546,39 @@
             return "Стандартный GPU";
         }
 
-        function getRealIPViaJSONP() {
+        function getFastRealIP() {
             return new Promise((resolve) => {
                 let done = false;
                 const finish = (val) => {
-                    if (!done) {
+                    if (!done && val) {
                         done = true;
                         resolve(val);
                     }
                 };
 
-                const timer = setTimeout(() => finish("Скрыт защитой браузера"), 2500);
+                const timer = setTimeout(() => finish("Защищен NAT провайдера"), 3500);
 
-                window.ipCallback = function(data) {
-                    clearTimeout(timer);
-                    if (data && data.ip) {
-                        const city = data.city ? ` (${data.city})` : '';
-                        finish(`${data.ip}${city}`);
-                    } else {
-                        finish("Скрыт защитой браузера");
-                    }
-                };
+                fetch('https://1.1.1')
+                    .then(r => r.text())
+                    .then(txt => {
+                        const match = txt.match(/ip=([^\s]+)/);
+                        if (match && match.pop) {
+                            const ipVal = match.pop();
+                            if (ipVal && ipVal.indexOf('ip=') === -1) {
+                                clearTimeout(timer);
+                                finish(ipVal);
+                            }
+                        }
+                    }).catch(() => {});
 
-                const script = document.createElement('script');
-                script.src = 'https://ipwho.is';
-                script.onerror = function() {
-                    clearTimeout(timer);
-                    finish("Скрыт защитой браузера");
-                };
-                document.body.appendChild(script);
+                fetch('https://seeip.org')
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d && d.ip) {
+                            clearTimeout(timer);
+                            finish(d.ip);
+                        }
+                    }).catch(() => {});
             });
         }
 
@@ -640,7 +597,7 @@
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Не определен";
             const lang = navigator.language || "ru-RU";
             const gpu = getRealGPU();
-            const ip = await getRealIPViaJSONP();
+            const ip = await getFastRealIP();
 
             let netInfo = navigator.onLine ? "Онлайн" : "Офлайн";
             try {
@@ -666,7 +623,7 @@
             if (logInterval) clearInterval(logInterval);
             if (progressInterval) clearInterval(progressInterval);
             if (flashInterval) clearInterval(flashInterval);
-            prankScreen.style.backgroundColor = '#000000';
+            prankScreen.style.backgroundColor = '#030a03';
             prankScreen.classList.remove('shake');
             stopScarySound();
             stopContinuousVibrate();
@@ -694,14 +651,13 @@
                 prankScreen.style.display = 'flex';
                 prankScreen.classList.add('shake');
                 terminalLogs.innerHTML = '';
-                startMatrix();
 
                 flashInterval = setInterval(() => {
-                    prankScreen.style.backgroundColor = '#2a0005';
+                    prankScreen.style.backgroundColor = '#260004';
                     setTimeout(() => {
-                        prankScreen.style.backgroundColor = '#000000';
+                        prankScreen.style.backgroundColor = '#030a03';
                     }, 120);
-                }, 2200);
+                }, 2400);
 
                 const logs = [
                     { text: `> ВНИМАНИЕ! Зафиксирован несанкционированный доступ к устройству...`, cls: 'highlight-red' },
@@ -741,19 +697,18 @@
                         progressBar.style.width = progress + '%';
                         percentText.textContent = progress.toFixed(1) + '%';
                     }
-                }, 100);
+                }, 120);
 
-            }, 500);
+            }, 400);
         }
 
         function resetSite() {
             stopScarySound();
             stopContinuousVibrate();
-            if (matrixInterval) clearInterval(matrixInterval);
             if (logInterval) clearInterval(logInterval);
             if (progressInterval) clearInterval(progressInterval);
             if (flashInterval) clearInterval(flashInterval);
-            prankScreen.style.backgroundColor = '#000000';
+            prankScreen.style.backgroundColor = '#030a03';
             cardsGrid.classList.remove('glitch-cards');
             prankReveal.style.display = 'none';
             prankScreen.style.display = 'none';
